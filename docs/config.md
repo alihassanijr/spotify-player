@@ -103,6 +103,7 @@ A player event is represented as a list of arguments with either of the followin
 - `"Playing" TRACK_ID POSITION_MS`
 - `"Paused" TRACK_ID POSITION_MS`
 - `"EndOfTrack" TRACK_ID`
+- `"Stopped" TRACK_ID`
 
 **Note**: If `args` is specified, these arguments precede the event arguments.
 
@@ -124,6 +125,7 @@ case "$1" in
     "Playing") echo "command: $1, track_id: $2, position_ms: $3" >> /tmp/log.txt ;;
     "Paused") echo "command: $1, track_id: $2, position_ms: $3" >> /tmp/log.txt ;;
     "EndOfTrack") echo "command: $1, track_id: $2" >> /tmp/log.txt ;;
+    "Stopped") echo "command: $1, track_id: $2" >> /tmp/log.txt ;;
 esac
 ```
 

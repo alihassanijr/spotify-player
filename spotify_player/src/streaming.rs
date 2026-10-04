@@ -62,6 +62,9 @@ enum PlayerEvent {
     EndOfTrack {
         playable_id: PlayableId<'static>,
     },
+    Stopped {
+        playable_id: PlayableId<'static>,
+    },
 }
 
 impl PlayerEvent {
@@ -89,6 +92,9 @@ impl PlayerEvent {
             ],
             PlayerEvent::EndOfTrack { playable_id } => {
                 vec!["EndOfTrack".to_string(), playable_id.uri()]
+            }
+            PlayerEvent::Stopped { playable_id } => {
+                vec!["Stopped".to_string(), playable_id.uri()]
             }
         }
     }
@@ -131,6 +137,9 @@ impl PlayerEvent {
                 position_ms,
             }),
             player::PlayerEvent::EndOfTrack { track_id, .. } => Some(PlayerEvent::EndOfTrack {
+                playable_id: spotify_id_to_playable_id(&track_id)?,
+            }),
+            player::PlayerEvent::Stopped { track_id, .. } => Some(PlayerEvent::Stopped {
                 playable_id: spotify_id_to_playable_id(&track_id)?,
             }),
             _ => None,
@@ -278,7 +287,10 @@ pub async fn new_connection(
                                     bands.lock().is_active = true;
                                 }
                             }
-                            PlayerEvent::Paused { .. } => {
+                            // librespot also stops on its own, e.g. on "previous" within the
+                            // first 3s of a context's first track (repeat off). Without this the
+                            // buffered playback stays `is_playing` and `Resume` is skipped.
+                            PlayerEvent::Paused { .. } | PlayerEvent::Stopped { .. } => {
                                 let mut player = state.player.write();
                                 if let Some(playback) = player.buffered_playback.as_mut() {
                                     playback.is_playing = false;
